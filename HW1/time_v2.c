@@ -1,18 +1,26 @@
+// 3.19 Version 2
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <string.h>
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <command>\n", argv[0]);
+    if (argc < 2) {
+        printf("Usage: %s <command> [args...]\n", argv[0]);
         return 1;
     }
-    struct timeval start, end;
 
-    gettimeofday(&start, NULL);
+    int pipefd[2];
+    if (pipe(pipefd) == -1) {
+        perror("pipe");
+        return 1;
+    }
+
+    struct timeval start, end;
 
     pid_t pid = fork();
     if (pid < 0) {
@@ -20,12 +28,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     if (pid == 0) {
-        execlp(argv[1], argv[1], NULL);
+        close(pipefd[0]);
+        gettimeofday(&start, NULL);
+        write(pipefd[1], &start, sizeof(start));
+        close(pipefd[1]);
+        execvp(argv[1], &argv[1]);
         perror("execlp");
         return 1;
     }
-    int status;
-    waitpid(pid, &status, 0);
+
+    close(pipefd[1]);
+    waitpid(pid, NULL, 0);
+    read(pipefd[0], &start, sizeof(start));
+    close(pipefd[0]);
 
     gettimeofday(&end, NULL);
 
