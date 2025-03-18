@@ -1,14 +1,14 @@
 // 3.19 Version 1
 
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/mman.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <string.h>
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
@@ -28,7 +28,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    struct timeval *shared_time = mmap(NULL, sizeof(struct timeval), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    struct timeval *shared_time =
+        mmap(NULL, sizeof(struct timeval), PROT_READ | PROT_WRITE, MAP_SHARED,
+             shm_fd, 0);
     if (shared_time == MAP_FAILED) {
         perror("mmap");
         return 1;
