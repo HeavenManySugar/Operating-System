@@ -1,4 +1,4 @@
-// 3.19 Version 1
+// 3.19 Version 1 shared memory
 
 #include <fcntl.h>
 #include <stdint.h>
