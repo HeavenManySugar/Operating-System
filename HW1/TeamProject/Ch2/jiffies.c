@@ -5,12 +5,12 @@
 
 #define PROC_NAME "jiffies"
 
-static int jiffies_show(struct seq_file *m, void *v) {
+static int jiffies_show(struct seq_file *m, void *_) {
     seq_printf(m, "%lu\n", jiffies);
     return 0;
 }
 
-static int jiffies_open(struct inode *inode, struct file *file) {
+static int jiffies_open(struct inode *_, struct file *file) {
     return single_open(file, jiffies_show, NULL);
 }
 

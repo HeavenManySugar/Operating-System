@@ -8,12 +8,12 @@
 
 static unsigned long start_jiffies;
 
-static int seconds_show(struct seq_file *m, void *v) {
+static int seconds_show(struct seq_file *m, void *_) {
     seq_printf(m, "%lu\n", (jiffies - start_jiffies) / HZ);
     return 0;
 }
 
-static int seconds_open(struct inode *inode, struct file *file) {
+static int seconds_open(struct inode *_, struct file *file) {
     return single_open(file, seconds_show, NULL);
 }
 

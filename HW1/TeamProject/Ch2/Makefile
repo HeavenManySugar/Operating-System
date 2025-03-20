@@ -8,3 +8,19 @@ all:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
+
+install:
+	@sudo insmod jiffies.ko
+	@sudo insmod seconds.ko
+
+uninstall:
+	@sudo rmmod jiffies.ko
+	@sudo rmmod seconds.ko
+
+check:
+	lsmod | grep jiffies
+	lsmod | grep seconds
+
+cat:
+	cat /proc/jiffies
+	cat /proc/seconds
