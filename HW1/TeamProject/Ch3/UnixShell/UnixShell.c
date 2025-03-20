@@ -99,6 +99,32 @@ void parse_execute(char *input) {
     int i = 0;
 
     while (token != NULL) {
+        if (token[0] == '"') {
+            token++;
+            if (token == NULL) {
+                break;
+            } else if (strcmp(token, "\"") == 0) {
+                args[i++] = "";
+                continue;
+            }
+            char *end = strchr(token, '"');
+            if (end == NULL) {
+                args[i++] = token;
+                token = strtok(NULL, " ");
+                while (token != NULL) {
+                    char *end2 = strchr(token, '"');
+                    if (end2 != NULL) {
+                        *end2 = '\0';
+                        break;
+                    }
+                    args[i++] = token;
+                    token = strtok(NULL, " ");
+                }
+                continue;
+            }
+            *end = '\0';
+            continue;
+        }
         args[i++] = token;
         token = strtok(NULL, " ");
     }
