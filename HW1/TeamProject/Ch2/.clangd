@@ -1,0 +1,13 @@
+CompileFlags:
+    Add: 
+        - -Wall
+        - -Wextra
+        - -Werror
+    Remove: 
+        - -mpreferred-stack-boundary=3
+        - -mindirect-branch=thunk-extern
+        - -mindirect-branch-register
+        - -fno-allow-store-data-races
+        - -fconserve-stack
+        - -fsanitize=bounds-strict
+        - -mrecord-mcount
