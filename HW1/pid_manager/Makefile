@@ -4,7 +4,7 @@ all:
 	./output/test_pid_manager
 
 clean:
-	rm test_pid_manager
+	rm -rf ./output
 
 install_gtest:
 	@sudo apt-get install libgtest-dev
