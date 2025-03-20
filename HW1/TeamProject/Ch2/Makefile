@@ -3,6 +3,8 @@ KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 CC := gcc
 
+.PHONY: all clean install uninstall check cat
+
 all:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
