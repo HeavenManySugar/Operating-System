@@ -95,38 +95,35 @@ void executeCommandEntry(char *const *args, int pipefd_parent[2]) {
 void parse_execute(char *input) {
     add_to_history(input);
     char *args[MAX_ARGS];
-    char *token = strtok(input, " ");
-    int i = 0;
-
-    while (token != NULL) {
-        if (token[0] == '"') {
-            token++;
-            if (token == NULL) {
-                break;
-            } else if (strcmp(token, "\"") == 0) {
-                args[i++] = "";
-                continue;
+    char *token;
+    int i = 0, j = 0;
+    while (input[j] != '\0') {
+        while (input[j] == ' ') {
+            j++;
+        }
+        if (input[j] == '\0') {
+            break;
+        }
+        if (input[j] == '"') {
+            j++;
+            token = &input[j];
+            while (input[j] != '"' && input[j] != '\0') {
+                j++;
             }
-            char *end = strchr(token, '"');
-            if (end == NULL) {
-                args[i++] = token;
-                token = strtok(NULL, " ");
-                while (token != NULL) {
-                    char *end2 = strchr(token, '"');
-                    if (end2 != NULL) {
-                        *end2 = '\0';
-                        break;
-                    }
-                    args[i++] = token;
-                    token = strtok(NULL, " ");
-                }
-                continue;
+            if (input[j] != '\0') {
+                input[j++] = '\0';
             }
-            *end = '\0';
+            args[i++] = token;
             continue;
         }
+        token = &input[j];
+        while (input[j] != ' ' && input[j] != '\0') {
+            j++;
+        }
+        if (input[j] != '\0') {
+            input[j++] = '\0';
+        }
         args[i++] = token;
-        token = strtok(NULL, " ");
     }
     args[i] = NULL;
 
