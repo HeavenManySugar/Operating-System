@@ -98,7 +98,6 @@ void parse_execute(char *input) {
     char *args[MAX_ARGS];
     char *token;
     int i = 0, j = 0;
-    int redirect_in = -1, redirect_out = -1;
     char *input_file = NULL, *output_file = NULL;
 
     int saved_stdin = dup(STDIN_FILENO);   // Save original stdin
@@ -135,7 +134,17 @@ void parse_execute(char *input) {
             if (input[j] != '\0') {
                 input[j++] = '\0';
             }
-            redirect_out = 1;
+            int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (fd < 0) {
+                perror("open");
+                dup2(saved_stdin, STDIN_FILENO);   // Restore stdin
+                dup2(saved_stdout, STDOUT_FILENO); // Restore stdout
+                close(saved_stdin);
+                close(saved_stdout);
+                return;
+            }
+            dup2(fd, STDOUT_FILENO);
+            close(fd);
             continue;
         }
         if (input[j] == '<') {
@@ -150,7 +159,17 @@ void parse_execute(char *input) {
             if (input[j] != '\0') {
                 input[j++] = '\0';
             }
-            redirect_in = 1;
+            int fd = open(input_file, O_RDONLY);
+            if (fd < 0) {
+                perror("open");
+                dup2(saved_stdin, STDIN_FILENO);   // Restore stdin
+                dup2(saved_stdout, STDOUT_FILENO); // Restore stdout
+                close(saved_stdin);
+                close(saved_stdout);
+                return;
+            }
+            dup2(fd, STDIN_FILENO);
+            close(fd);
             continue;
         }
         token = &input[j];
@@ -173,34 +192,6 @@ void parse_execute(char *input) {
     if (strcmp(args[0], "history") == 0) {
         print_history();
         return;
-    }
-
-    if (redirect_in == 1) {
-        int fd = open(input_file, O_RDONLY);
-        if (fd < 0) {
-            perror("open");
-            dup2(saved_stdin, STDIN_FILENO);   // Restore stdin
-            dup2(saved_stdout, STDOUT_FILENO); // Restore stdout
-            close(saved_stdin);
-            close(saved_stdout);
-            return;
-        }
-        dup2(fd, STDIN_FILENO);
-        close(fd);
-    }
-
-    if (redirect_out == 1) {
-        int fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (fd < 0) {
-            perror("open");
-            dup2(saved_stdin, STDIN_FILENO);   // Restore stdin
-            dup2(saved_stdout, STDOUT_FILENO); // Restore stdout
-            close(saved_stdin);
-            close(saved_stdout);
-            return;
-        }
-        dup2(fd, STDOUT_FILENO);
-        close(fd);
     }
 
     executeCommandEntry(args, NULL);
