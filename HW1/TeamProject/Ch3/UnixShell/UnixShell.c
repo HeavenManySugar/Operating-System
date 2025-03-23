@@ -97,7 +97,7 @@ void parse_execute(char *input) {
     add_to_history(input);
     char *args[MAX_ARGS];
     char *token;
-    int i = 0, j = 0;
+    int i = 0, j = 0, pipe_flag = 0;
     char *input_file = NULL, *output_file = NULL;
 
     int saved_stdin = dup(STDIN_FILENO);   // Save original stdin
@@ -173,13 +173,21 @@ void parse_execute(char *input) {
             continue;
         }
         token = &input[j];
+        pipe_flag = 0;
         while (input[j] != ' ' && input[j] != '\0') {
+            if (input[j] == '|') {
+                pipe_flag = 1;
+                break;
+            }
             j++;
         }
         if (input[j] != '\0') {
             input[j++] = '\0';
         }
         args[i++] = token;
+        if (pipe_flag || input[j++] == '|') {
+            args[i++] = "|";
+        }
     }
     args[i] = NULL;
 
@@ -193,6 +201,11 @@ void parse_execute(char *input) {
         print_history();
         return;
     }
+
+    // printf("Arguments:\n");
+    // for (int k = 0; args[k] != NULL; k++) {
+    //     printf("args[%d]: %s\n", k, args[k]);
+    // }
 
     executeCommandEntry(args, NULL);
 
