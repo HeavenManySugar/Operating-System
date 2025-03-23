@@ -185,7 +185,10 @@ void parse_execute(char *input) {
             input[j++] = '\0';
         }
         args[i++] = token;
-        if (pipe_flag || input[j++] == '|') {
+        if (pipe_flag || input[j] == '|') {
+            if (input[j] == '|') {
+                j++;
+            }
             args[i++] = "|";
         }
     }
