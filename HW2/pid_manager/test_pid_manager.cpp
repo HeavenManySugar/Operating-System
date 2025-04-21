@@ -1,5 +1,35 @@
 #include "pid_manager.h"
+#include <chrono>
 #include <gtest/gtest.h>
+#include <iostream>
+#include <mutex>
+#include <random>
+#include <set>
+#include <thread>
+#include <vector>
+
+std::vector<int> allocated_pids;
+std::mutex pid_vec_mutex;
+
+void thread_pid_task(int thread_id) {
+    int pid = allocate_pid();
+    if (pid == -1) {
+        std::cerr << "Thread " << thread_id << ": Failed to allocate PID\n";
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(pid_vec_mutex);
+        allocated_pids.push_back(pid);
+    }
+    // Sleep for 1-3 seconds randomly
+    static thread_local std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<> dist(1, 3);
+    int sleep_time = dist(gen);
+    std::this_thread::sleep_for(std::chrono::seconds(sleep_time));
+    release_pid(pid);
+    // Optionally print for debugging
+    // std::cout << "Thread " << thread_id << ": Released PID " << pid << "\n";
+}
 
 TEST(PidManagerTest, AllocateMapSuccess) { EXPECT_EQ(allocate_map(), 1); }
 
@@ -64,6 +94,34 @@ TEST(PidManagerTest, AllocateAndReleaseAllPids) {
     }
 
     // Ensure no more PIDs can be allocated again
+    EXPECT_EQ(allocate_pid(), -1);
+}
+
+TEST(PidManagerTest, MultithreadedPidAllocation) {
+    allocate_map();
+    allocated_pids.clear();
+    const int num_threads = 100;
+    std::vector<std::thread> threads;
+    for (int i = 0; i < num_threads; ++i) {
+        threads.emplace_back(thread_pid_task, i);
+    }
+    for (auto &t : threads) {
+        t.join();
+    }
+    // 檢查所有分配到的 PID 是否唯一且合法
+    std::set<int> pid_set;
+    for (int pid : allocated_pids) {
+        EXPECT_GE(pid, MIN_PID);
+        EXPECT_LE(pid, MAX_PID);
+        pid_set.insert(pid);
+    }
+    EXPECT_EQ(pid_set.size(), allocated_pids.size())
+        << "Duplicate PID detected!";
+
+    // After all threads, all PIDs should be released and available again
+    for (int i = 0; i < MAX_PID - MIN_PID + 1; i++) {
+        EXPECT_NE(allocate_pid(), -1);
+    }
     EXPECT_EQ(allocate_pid(), -1);
 }
 
