@@ -8,26 +8,21 @@
 int available_resources =
     MAX_RESOURCES; // (a) Data involved in the race condition
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
 int decrease_count(int count) {
-    pthread_mutex_lock(&lock);
-    while (available_resources < count) {
-        pthread_cond_wait(&cond, &lock);
+    // (b) Race condition can occur here: checking and updating
+    // available_resources is not atomic
+    if (available_resources < count)
+        return -1;
+    else {
+        available_resources -=
+            count; // (b) Race condition: modification of shared data
+        return 0;
     }
-    available_resources -=
-        count; // (b) Race condition: modification of shared data
-    pthread_mutex_unlock(&lock);
-    return 0;
 }
 
 int increase_count(int count) {
-    pthread_mutex_lock(&lock);
     available_resources +=
         count; // (b) Race condition: modification of shared data
-    pthread_cond_broadcast(&cond);
-    pthread_mutex_unlock(&lock);
     return 0;
 }
 
