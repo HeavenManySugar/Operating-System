@@ -13,9 +13,9 @@ int main(int argc, char *argv[]) {
     unsigned int offset = virtual_address % page_size;
     unsigned int page_number = virtual_address / page_size;
 
-    printf("The virtual address %u contains:\n", virtual_address);
-    printf("Page number = %u\n", page_number);
-    printf("Offset = %u\n", offset);
+    printf("The address %u contains:\n", virtual_address);
+    printf("page number=%u\n", page_number);
+    printf("offset=%u\n", offset);
 
     return 0;
 }
